@@ -1,0 +1,15 @@
+---
+title: "DDSAnalytics  - Employee Trends"
+author: "Caroll Rodriguez, Mike Kelleher, Dmitry Andreev, Shravan Reddy"
+date: "March 28, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+df <- read.csv(file="./CaseStudy2data.csv")
+df
+
+```
