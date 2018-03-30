@@ -1,15 +1,62 @@
 ---
 title: "DDSAnalytics  - Employee Trends"
-author: "Caroll Rodriguez, Mike Kelleher, Dmitry Andreev, Shravan Reddy"
+author:
+- Caroll Rodriguez <@smu.edu>
+- Dmitry Andreev <@smu.edu>
+- Shravan Reddy <@smu.edu>
+- MJKelleher <mikek@smu.edu>
 date: "March 28, 2018"
-output: html_document
+output: 
+  html_document:
+    toc: true
+    toc_depth: 2
+  pdf_document:
+    toc: true
+    toc_depth: 2
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-```{r}
-df <- read.csv(file="./CaseStudy2data.csv")
-df
+```{r setup, include=FALSE, echo=TRUE}
+library(knitr)
 
+# Clean the workspace, remove all existing Objects
+rm(list=ls())
+knitr::opts_chunk$set(echo = TRUE)
+source('code/00_Setup.R')
+
+library(xlsx)
+source('code/01_LoadData.R')
+```
+
+```{r, results='hide', message=FALSE, warning=FALSE, echo=FALSE}
+# Remove any of these we dont end up using
+library(dplyr)
+library(ggplot2)
+library(doBy)
+library(stringr)
+library(reshape2)
+library(gridExtra)
+library(gplots)
+
+# Set RMarkdown plots to a default 12 by 8 inches
+knitr::opts_chunk$set(fig.width=12, fig.height=8)
+```
+
+```{r, results='hide', message=FALSE, warning=FALSE, echo=FALSE}
+#
+# This imports the R scripts, but does not execute them yet.
+# They are executed later in the next code chunk
+# read_chunk('code/01_Question_01.R')
+# read_chunk('code/01_Question_02.R')
+# read_chunk('code/01_Question_03.R')
+# read_chunk('code/01_Question_04.R')
+
+#
+# In RStudio the next block of code may look like it has a compile or syntax
+#    error in the editor.  However, if you run 'Knit', the document will build
+#    without error.  It will give you and error:  "Unexpected token '<'"
+#
+```
+
+```{r}
+head(hr_employee_attrition)
 ```
