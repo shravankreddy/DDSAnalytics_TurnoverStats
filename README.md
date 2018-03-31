@@ -11,6 +11,12 @@ DDSAnalytics is an analytics company that specializes in talent management solut
 
 # Files
 
+# QOI
+1. Top 3 factors contributing to turnover
+1. Job role specific trends
+1. Other interesting trends
+1. Predicating employee turnover
+
 # Reference Links
 
 * [GTM - For Collaboration](https://app.gotomeeting.com/?meetingId=336080109)
