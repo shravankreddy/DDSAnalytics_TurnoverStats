@@ -20,3 +20,4 @@ DDSAnalytics is an analytics company that specializes in talent management solut
 # Reference Links
 
 * [GTM - For Collaboration](https://app.gotomeeting.com/?meetingId=336080109)
+* [PDF for CaseStudy #2](https://github.com/drcrod/DDSAnalytics_TurnoverStats/blob/master/reference/CaseStudy02.pdf)
