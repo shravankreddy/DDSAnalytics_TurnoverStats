@@ -21,10 +21,13 @@ library(knitr)
 # Clean the workspace, remove all existing Objects
 rm(list=ls())
 knitr::opts_chunk$set(echo = TRUE)
+
+# Perform environment setup
 source('code/00_Setup.R')
 
 library(xlsx)
 source('code/01_LoadData.R')
+# Creates dataframe:  hr_employee_attrition
 ```
 
 ```{r, results='hide', message=FALSE, warning=FALSE, echo=FALSE}
@@ -41,22 +44,15 @@ library(gplots)
 knitr::opts_chunk$set(fig.width=12, fig.height=8)
 ```
 
-```{r, results='hide', message=FALSE, warning=FALSE, echo=FALSE}
-#
-# This imports the R scripts, but does not execute them yet.
-# They are executed later in the next code chunk
-# read_chunk('code/01_Question_01.R')
-# read_chunk('code/01_Question_02.R')
-# read_chunk('code/01_Question_03.R')
-# read_chunk('code/01_Question_04.R')
 
-#
-# In RStudio the next block of code may look like it has a compile or syntax
-#    error in the editor.  However, if you run 'Knit', the document will build
-#    without error.  It will give you and error:  "Unexpected token '<'"
-#
+```{r child = 'rmd/TopThreeFactors.rmd'}
 ```
 
-```{r}
-head(hr_employee_attrition)
+```{r child = 'rmd/JobRoleTrend.rmd'}
+```
+
+```{r child = 'rmd/OtherTrends.rmd'}
+```
+
+```{r child = 'rmd/EmployeeTurnover.rmd'}
 ```

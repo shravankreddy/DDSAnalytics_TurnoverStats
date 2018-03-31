@@ -1,0 +1,3 @@
+```{r}
+head(hr_employee_attrition)
+```
