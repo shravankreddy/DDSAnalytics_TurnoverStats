@@ -11,6 +11,9 @@ DDSAnalytics is an analytics company that specializes in talent management solut
 
 # Files
 
+* Main-CS2.Rmd - main markdown file for the project
+* code/ - 
+
 # QOI
 1. Top 3 factors contributing to turnover
 1. Job role specific trends
