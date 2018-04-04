@@ -4,10 +4,10 @@ DDSAnalytics is an analytics company that specializes in talent management solut
 
 # Contributors
 
-1. Caroll Rodriguez
-1. MJKelleher
-1. Shravan Reddy
-1. Dmitry Andeev
+1. Caroll Rodriguez <carollr@mail.smu.edu>
+1. Shravan Reddy <skreddy@mail.smu.edu>
+1. Dmitry Andeev <dandreev@mail.smu.edu>
+1. MJKelleher  <mikek@smu.edu>
 
 # Files
 
