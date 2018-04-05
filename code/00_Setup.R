@@ -1,6 +1,9 @@
 # ENVIRONMENT
 # Make sure ready for this project
 
+# Change when R uses scientific notation
+options(scipen=10)
+
 # Create directory to be used later on if it doesnt exist
 ifelse(!dir.exists(file.path(".", "tmp")), dir.create(file.path(".", "tmp")), FALSE)
 
@@ -25,5 +28,5 @@ check.packages <- function(pkg){
     sapply(pkg, require, character.only = TRUE)
 }
 
-packages<-c("xlsx", "dplyr", "ggplot2", "doBy", "stringr", "reshape2", "gridExtra", "gplots")
+packages<-c("xlsx", "dplyr", "ggplot2", "doBy", "stringr", "reshape2", "gridExtra", "gplots", "randomForest", "caret")
 check.packages(packages)

@@ -39,6 +39,7 @@ library(stringr)
 library(reshape2)
 library(gridExtra)
 library(gplots)
+library(randomForest)
 
 # Set RMarkdown plots to a default 12 by 8 inches
 knitr::opts_chunk$set(fig.width=12, fig.height=8)
