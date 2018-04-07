@@ -1,0 +1,75 @@
+```{r}
+attach(hr_reduced)
+
+ggplot(hr_reduced,aes(x=NumCompaniesWorked,y=YearsAtCompany)) + geom_point() + geom_smooth(method="lm")
+ggplot(hr_reduced,aes(x=WorkLifeBalance,y=YearsAtCompany)) + geom_point() + geom_smooth(method="lm")
+ggplot(hr_reduced,aes(x=Education,y=YearsAtCompany)) + geom_point() + geom_smooth(method="lm")
+ggplot(hr_reduced,aes(x=ï..Age,y=YearsAtCompany)) + geom_point() + geom_smooth(method="lm")
+ggplot(hr_reduced,aes(x=HourlyRate,y=YearsAtCompany)) + geom_point() + geom_smooth(method="lm")
+ggplot(hr_reduced,aes(x=MonthlyIncome,y=YearsAtCompany)) + geom_point() + geom_smooth(method="lm")
+ggplot(hr_reduced,aes(x=YearsInCurrentRole,y=YearsAtCompany)) + geom_point() + geom_smooth(method="lm")
+ggplot(hr_reduced,aes(x=DistanceFromHome,y=YearsAtCompany)) + geom_point() + geom_smooth(method="lm")
+ggplot(hr_reduced,aes(x=NumCompaniesWorked,y=YearsAtCompany,type=hr_reduced$ï..Age)) + geom_point() + geom_smooth(method="lm")
+
+
+
+# Full Model
+df.lm.full <- lm(YearsAtCompany ~ NumCompaniesWorked + Education + YearsInCurrentRole +DistanceFromHome + MonthlyIncome + HourlyRate + DailyRate + MonthlyRate+ JobLevel+JobSatisfaction+ StockOptionLevel+TotalWorkingYears+EnvironmentSatisfaction + YearsWithCurrManager+YearsSinceLastPromotion+JobInvolvement+JobRole+PercentSalaryHike+PerformanceRating+RelationshipSatisfaction+TrainingTimesLastYear+WorkLifeBalance+hr_reduced$ï..Age,  data=hr_reduced)
+
+summary(df.lm.full)
+plot(df.lm.full)
+
+#Reduced Model
+df.lm.reduced <- lm(YearsAtCompany ~  YearsInCurrentRole + DailyRate + TotalWorkingYears+ YearsWithCurrManager+YearsSinceLastPromotion+JobInvolvement+JobRole+hr_reduced$ï..Age,  data=hr_reduced)
+summary(df.lm.reduced)
+plot(df.lm.reduced)
+
+
+#log transformation of predictor y=YearsAtCompay
+hr_reduced <- mutate(hr_reduced,logYearsAtCompany=log(YearsAtCompany+1))
+
+#Reduced Model with loglinear transformation
+df.lm.reduced <- lm(logYearsAtCompany ~  YearsInCurrentRole + DailyRate + TotalWorkingYears+ YearsWithCurrManager+YearsSinceLastPromotion+JobInvolvement+JobRole+hr_reduced$ï..Age,  data=hr_reduced)
+
+summary(df.lm.reduced)
+plot(df.lm.reduced)
+
+#log transformation of explanatory variables x
+#hr_reduced <- mutate(hr_reduced,logYearsInCurrentRole=log(YearsInCurrentRole+1))
+#hr_reduced <- mutate(hr_reduced,logDailyRate=log(DailyRate))
+#hr_reduced <- mutate(hr_reduced,logTotalWorkingYears=log(TotalWorkingYears+1))
+#hr_reduced <- mutate(hr_reduced,logYearsWithCurrManager=log(YearsWithCurrManager+1))
+#hr_reduced <- mutate(hr_reduced,logYYearsSinceLastPromotion=log(YearsSinceLastPromotion+1))
+#hr_reduced <- mutate(hr_reduced,logJobInvolvement=log(JobInvolvement+1))
+#hr_reduced <- mutate(hr_reduced,logï..Age=log(ï..Age))
+
+
+#Plot
+ggplot(df.lm.reduced,aes(x=YearsInCurrentRole + DailyRate + TotalWorkingYears+ YearsWithCurrManager+YearsSinceLastPromotion+JobInvolvement+hr_reduced$ï..Age, y=logYearsAtCompany,type=JobRole)) + geom_point() + geom_smooth(method="lm")
+
+
+#Prediction and Confidence Intervals
+newx <- hr_reduced$logYearsAtCompany
+newx <- sort(newx)
+prd_c <- predict(df.lm.reduced, newdata = data.frame(logYearsAtCompany = newx), interval=c("confidence"), 
+                 type = c("response"), level=0.95)
+prd_p <- predict(df.lm.reduced, newdata= data.frame(logYearsAtCompany = newx), interval=c("prediction"), 
+                 type = c("response"), level=0.95)
+
+#Plot with confidence and prediction intervals
+plot(df[,29], df[,28], xlim=c(0,4),ylim=c(0,10),xlab = "Years In Current Role", ylab = "Years At Company", main = " ")
+abline(df.lm.reduced, col = "red")
+lines(newx,prd_c[,2],col = "blue",lty = 2, lwd = 2)
+lines(newx,prd_c[,3],col = "blue", lty = 2, lwd = 2)
+lines(newx,prd_p[,2],col = "green", lty = 2, lwd = 2)
+lines(newx,prd_p[,3],col = "green", lty = 2, lwd = 2)
+
+##################################################
+df.lm.res <- resid(df.lm)
+
+plot(df.lm.res)
+abline(0,0)
+
+#####################################################
+
+```
