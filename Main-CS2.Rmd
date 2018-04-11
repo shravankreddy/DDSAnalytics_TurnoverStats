@@ -25,7 +25,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # Perform environment setup
 source('code/00_Setup.R')
 
-library(xlsx)
+#library(xlsx)
 source('code/01_LoadData.R')
 # Creates dataframe:  hr_employee_attrition
 ```

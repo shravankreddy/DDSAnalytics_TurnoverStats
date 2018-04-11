@@ -4,6 +4,7 @@
 rm(list=ls())
 
 source('code/00_Setup.R')
+source('code/00_Functions.R')
 source('code/01_LoadData.R')
 
 library(dplyr)
