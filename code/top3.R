@@ -51,7 +51,7 @@ k <- min(table(hr_reduced[,1]))/2
 # mtry default value is best with:  ntree=200, replace=FALSE, importance=TRUE, sampsize=c(k,k)
 # replace default value with: ntree=200, importantance = TRUE, sampsize=c(k,k)
 #       No gets better, Yes gets worse
-clf <- randomForest(hr_reduced[,-1], hr_reduced[,1], ntree=500, replace=FALSE, importantance = TRUE, mtry=15, sampsize=c(k,k))
+# clf <- randomForest(hr_reduced[,-1], hr_reduced[,1], ntree=500, replace=FALSE, importantance = TRUE, mtry=15, sampsize=c(k,k))
 
 
 
