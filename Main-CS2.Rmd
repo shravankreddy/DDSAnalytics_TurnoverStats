@@ -25,7 +25,8 @@ knitr::opts_chunk$set(echo = TRUE)
 # Perform environment setup
 source('code/00_Setup.R')
 
-library(xlsx)
+#library(xlsx)
+source('code/00_Functions.R')
 source('code/01_LoadData.R')
 # Creates dataframe:  hr_employee_attrition
 ```
@@ -40,6 +41,7 @@ library(reshape2)
 library(gridExtra)
 library(gplots)
 library(randomForest)
+library(caret)
 
 # Set RMarkdown plots to a default 12 by 8 inches
 knitr::opts_chunk$set(fig.width=12, fig.height=8)

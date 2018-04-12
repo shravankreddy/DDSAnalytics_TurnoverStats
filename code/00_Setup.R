@@ -28,5 +28,5 @@ check.packages <- function(pkg){
     sapply(pkg, require, character.only = TRUE)
 }
 
-packages<-c("xlsx", "dplyr", "ggplot2", "doBy", "stringr", "reshape2", "gridExtra", "gplots", "randomForest", "caret")
+packages<-c( "dplyr", "ggplot2", "doBy", "stringr", "reshape2", "gridExtra", "gplots", "randomForest", "caret")
 check.packages(packages)
