@@ -131,71 +131,39 @@ $(document).ready(function () {
 
 </div>
 
+<div id="TOC">
+<ul>
+<li><a href="#top-3-factors-affecting-employee-turnover">Top 3 Factors affecting employee turnover</a></li>
+</ul>
+</div>
 
-<pre class="r"><code>head(hr_employee_attrition)</code></pre>
-<pre><code>##   Age Attrition    BusinessTravel DailyRate             Department
-## 1  41       Yes     Travel_Rarely      1102                  Sales
-## 2  49        No Travel_Frequently       279 Research &amp; Development
-## 3  37       Yes     Travel_Rarely      1373 Research &amp; Development
-## 4  33        No Travel_Frequently      1392 Research &amp; Development
-## 5  27        No     Travel_Rarely       591 Research &amp; Development
-## 6  32        No Travel_Frequently      1005 Research &amp; Development
-##   DistanceFromHome Education EducationField EmployeeCount EmployeeNumber
-## 1                1         2  Life Sciences             1              1
-## 2                8         1  Life Sciences             1              2
-## 3                2         2          Other             1              4
-## 4                3         4  Life Sciences             1              5
-## 5                2         1        Medical             1              7
-## 6                2         2  Life Sciences             1              8
-##   EnvironmentSatisfaction Gender HourlyRate JobInvolvement JobLevel
-## 1                       2 Female         94              3        2
-## 2                       3   Male         61              2        2
-## 3                       4   Male         92              2        1
-## 4                       4 Female         56              3        1
-## 5                       1   Male         40              3        1
-## 6                       4   Male         79              3        1
-##                 JobRole JobSatisfaction MaritalStatus MonthlyIncome
-## 1       Sales Executive               4        Single          5993
-## 2    Research Scientist               2       Married          5130
-## 3 Laboratory Technician               3        Single          2090
-## 4    Research Scientist               3       Married          2909
-## 5 Laboratory Technician               2       Married          3468
-## 6 Laboratory Technician               4        Single          3068
-##   MonthlyRate NumCompaniesWorked Over18 OverTime PercentSalaryHike
-## 1       19479                  8      Y      Yes                11
-## 2       24907                  1      Y       No                23
-## 3        2396                  6      Y      Yes                15
-## 4       23159                  1      Y      Yes                11
-## 5       16632                  9      Y       No                12
-## 6       11864                  0      Y       No                13
-##   PerformanceRating RelationshipSatisfaction StandardHours
-## 1                 3                        1            80
-## 2                 4                        4            80
-## 3                 3                        2            80
-## 4                 3                        3            80
-## 5                 3                        4            80
-## 6                 3                        3            80
-##   StockOptionLevel TotalWorkingYears TrainingTimesLastYear WorkLifeBalance
-## 1                0                 8                     0               1
-## 2                1                10                     3               3
-## 3                0                 7                     3               3
-## 4                0                 8                     3               3
-## 5                1                 6                     3               3
-## 6                0                 8                     2               2
-##   YearsAtCompany YearsInCurrentRole YearsSinceLastPromotion
-## 1              6                  4                       0
-## 2             10                  7                       1
-## 3              0                  0                       0
-## 4              8                  7                       3
-## 5              2                  2                       2
-## 6              7                  7                       3
-##   YearsWithCurrManager
-## 1                    5
-## 2                    7
-## 3                    0
-## 4                    0
-## 5                    2
-## 6                    6</code></pre>
+<div id="top-3-factors-affecting-employee-turnover" class="section level2">
+<h2>Top 3 Factors affecting employee turnover</h2>
+<p>In order to answer this question, several issues need to be addressed with the data. To ensure a good model for prediction, we need to make sure we do not have:</p>
+<ol style="list-style-type: decimal">
+<li>Factors that have absolutely nothing to do with employee turnover, similar to EmpoyeeId</li>
+<li>Zero value or near zero value for every single observation</li>
+<li>Factor data with more than 32 levels</li>
+</ol>
+<p>The only factor providing zero information related to attrition was Empoyee ID. This is removed because it provides no extra information for prediction.</p>
+<p>In the case of the near zero values, all cases had the same exact value, and provided no extra information to the model.</p>
+<p>The Factors with too many levels were fixed by separating them out into ranges of values. An attempt to make each range equal in size was made, but not all the new variables were able to do this. ran ges work well, because the values were ordinal and relational to one another.</p>
+<pre class="r"><code>source('../code/top3.R')</code></pre>
+<pre><code>## Remove near zero value columns: &quot;EmployeeCount&quot;, &quot;Over18&quot;, &quot;StandardHours&quot;
+## Remove EmployeeNumber
+## Create new Variable AgeClass from Age
+## Create new Variable DailyRateClass from DailyRate
+## Create new Variable HourlyRateClass from HourlyRate
+## Create new Variable MonthlyIncomeClass from MonthlyIncome
+## Create new Variable MonthlyRateClass from MonthlyRate
+## Create new Variable TotalWorkingYearsClass from TotalWorkingYears
+## Create new Variable YearsAtCompanyClass from YearsAtCompany
+## Top 3 factors affecting employee attrition:
+##                        VariableName  MeanDecreaseGini
+##                             JobRole  9.19128588719921
+##                            OverTime  7.74299140307507
+##                    DistanceFromHome  6.2405889255241</code></pre>
+</div>
 
 
 

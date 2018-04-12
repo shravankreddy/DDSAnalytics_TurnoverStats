@@ -64,6 +64,52 @@ getColumnNumber <- function(df, colname){
     return (found)
 }
 
+printImportance <- function(df, max = 999999999){
+    thestring <- cat(sprintf("%35s  %s\n", names(df)[1], names(df)[2]))
+    
+    count <- 0
+    for (row in 1:nrow(df)) {
+      
+        vname <- df[row, 1]
+        val <- df[row, 2]
+        
+        str1 <- cat( sprintf("%35s  %s\n", vname, val) )
+        thestring <- paste0(thestring, str1)
+        count <- count + 1
+        if (count >= max) {
+          break
+        }
+    }
+    
+    return (thestring)
+}
+
+sortImportance <- function(clf) {
+    thenames <- attributes(clf$importance)$dimnames[[1]]
+    newdf <- data.frame(matrix(ncol=2, nrow=0))
+    colnames(newdf) <- c("VariableName", "MeanDecreaseGini")
+    
+    imps <- sort(clf$importance, decreasing = TRUE)
+    
+    for (i in imps) {
+        idx <- 1
+        thename <- ''
+        
+        for (i2 in clf$importance) {
+            if (i2 == i) {
+                thename <- thenames[idx]
+                break
+            } else {
+                idx <- idx + 1
+            }
+        }
+        
+        newdf[nrow(newdf)+1,] <- c(thename, i)
+    }
+    
+    return (newdf)
+}
+
 # vary the following:
 #   mtry - the number of variables to use at each tree
 #   ntree - the maximum number of trees

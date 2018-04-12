@@ -1,3 +1,17 @@
+## Top 3 Factors affecting employee turnover
+
+In order to answer this question, several issues need to be addressed with the data.  To ensure a good model for prediction, we need to make sure we do not have:
+
+1. Factors that have absolutely nothing to do with employee turnover, similar to EmpoyeeId
+1. Zero value or near zero value for every single observation
+1. Factor data with more than 32 levels
+
+The only factor providing zero information related to attrition was Empoyee ID.  This is removed because it provides no extra information for prediction.
+
+In the case of the near zero values, all cases had the same exact value, and provided no extra information to the model.
+
+The Factors with too many levels were fixed by separating them out into ranges of values.  An attempt to make each range equal in size was made, but not all the new variables were able to do this.  ran ges work well, because the values were ordinal and relational to one another.
+
 ```{r}
-head(hr_employee_attrition)
+source('../code/top3.R')
 ```
