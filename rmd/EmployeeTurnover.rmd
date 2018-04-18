@@ -1,5 +1,7 @@
 ---
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -38,6 +40,7 @@ features - number of explanatory variables in dataset.</p>
 <p>All features will be used in this RandomForest. 
 70% of dataset is used for training and remaining 30% is used to test the Trees. Number of variables selected are 4.
 Figure 1 shows the error is reduced as you add more trees.</p>
+
 ```{r}
 attach(hr_reduced)
 
@@ -52,16 +55,18 @@ features <- as.numeric(ncol(hr_reduced)-1)
 
 hr_reduced.rf <- randomForest(Attrition ~ . , data = hr_reduced , subset = train)
 hr_reduced.rf
-
+```
+```{r}
 #PFigure 1
-plot(hr_reduced.rf, main = "RandomForest - Error vs Trees Chart")     
+plot(hr_reduced.rf, main = "RandomForest - Error vs Trees Chart") 
 ```
 <br>
 ###Out of Bag Sample Errors and Error on Test dataset
 <p>`r sqrt(features)` random features are selected at each split. 500 trees are tested  `r features` times for all `r features` features.</p>
-```{r}
 
 #Random Forest - Classification
+
+```{r}
 library(randomForest)
 set.seed(222)
 rf <- randomForest(Attrition~., data=train,
@@ -130,11 +135,9 @@ print(tab)
   #pred<-predict(rf,hr_reduced[-train,]) #Predictions on Test Set for each Tree
   #test.err[mtry]= with(hr_reduced[-train,], mean( (Attrition - pred)^2)) #Mean Squared Test Error
   
-  #cat(mtry," ") #printing the output to the console
-#}
+  #cat(mtry," ") #printing the output to the console}
 ```
 <br>
-
 ####Error on Test Dataset
 ```{r}
 #test.err
@@ -151,17 +154,12 @@ The red line of Figure 2 show the Out of Bag Error Estimates and the Blue line i
 ```{r}
 #matplot(1:mtry , cbind(oob.err,test.err), pch=19 , col=c("red","blue"),type="b",ylab="Mean Squared Error",xlab="Number of Predictors Considered at each Split")
 #legend("topright",legend=c("Out of Bag Error","Test Error"),pch=19, col=c("red","blue"))
-```
-
-```{r}
 hr_reduced.lm <- glm(relevel(as.factor(Attrition),ref="Yes") ~ relevel(as.factor(JobRole),ref="Research Scientist") + relevel(as.factor(OverTime),ref="Yes") + DistanceFromHome, data = hr_reduced, family =binomial())
-
 summary(hr_reduced.lm)
 
 df.res <- resid(hr_reduced.lm)
 df.res
 plot(df.res, ylab = "Residuals", main = "Residuals - Age ~ JobRole + OverTime + DistanceFromHome")
-
 
 detach(hr_reduced)
 detach(hr_reduced.rf)
