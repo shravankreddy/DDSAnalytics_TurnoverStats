@@ -7,6 +7,7 @@ library(utils)
 library(dplyr)
 library(knitr)
 library(randomForest)
+library(caret)
 ```
 # Multiple Linear Regression Model
 </br>
@@ -15,7 +16,7 @@ library(randomForest)
 Figure 1: Error and Number of Trees. The more Trees you have the less Error.</p>
 ```{r}
 #Data import and cleaning
-dataFileCsv <- "data/CaseStudy2data.csv"
+dataFileCsv <- "../data/CaseStudy2data.csv"
 hr_employee_attrition <- read.csv(dataFileCsv)
 attach(hr_employee_attrition)
 nzv <- nearZeroVar(hr_employee_attrition)
@@ -32,53 +33,115 @@ samplesize - 70% of count of rows in dataset.
 datasize - number of records in dataset.
 train - number of records in training dataset.
 features - number of explanatory variables in dataset.</p>
-```{r}
-attach(hr_reduced)
-samplesize <- (nrow(hr_reduced))*.70
-datasize <- nrow(hr_reduced)
-train=sample(1:datasize,samplesize)
-features <- ncol(hr_reduced)
-```
 <br>
 ###Fitting the RandomForest
 <p>All features will be used in this RandomForest. 
 70% of dataset is used for training and remaining 30% is used to test the Trees. Number of variables selected are 4.
-Figure 1 shows the error is reduced as you add more trees.
+Figure 1 shows the error is reduced as you add more trees.</p>
 ```{r}
+attach(hr_reduced)
+
+# Data Partition
+set.seed(402)
+ind <- sample(2, nrow(hr_reduced), replace = TRUE, prob = c(0.7, 0.3))
+train <- hr_reduced[ind==1,]
+test <- hr_reduced[ind==2,]
+samplesize <- (nrow(hr_reduced))*.70
+datasize <- nrow(hr_reduced)
+features <- as.numeric(ncol(hr_reduced)-1)
+
 hr_reduced.rf <- randomForest(Attrition ~ . , data = hr_reduced , subset = train)
 hr_reduced.rf
-
-attach(hr_reduced.rf)
 
 #PFigure 1
 plot(hr_reduced.rf, main = "RandomForest - Error vs Trees Chart")     
 ```
 <br>
 ###Out of Bag Sample Errors and Error on Test dataset
-<p>`r sqrt(features,0)` random features are selected at each split. 500 trees are tested  `r features` times for all `r features` features.
+<p>`r sqrt(features)` random features are selected at each split. 500 trees are tested  `r features` times for all `r features` features.</p>
 ```{r}
-oob.err=double(features)
-test.err=double(features)
 
-for(mtry in 1:features)
-{
-  rf=randomForest(Attrition ~ . , data = hr_reduced, subset = train,mtry=mtry,ntree=500) 
-  oob.err[mtry] = rf$mse[500] 
+#Random Forest - Classification
+library(randomForest)
+set.seed(222)
+rf <- randomForest(Attrition~., data=train,
+                   ntree = 300,
+                   mtry = 10,
+                   importance = TRUE,
+                   proximity = TRUE)
+print(rf)
+attributes(rf)
+
+# Prediction & Confusion Matrix - train data
+library(caret)
+p1 <- predict(rf, train)
+confusionMatrix(p1, train$Attrition)
+
+#  Prediction & Confusion Matrix - test data
+p2 <- predict(rf, test)
+confusionMatrix(p2, test$Attrition)
+
+#Error Rate of Random Forest
+plot(rf)
+
+# No. of nodes for the trees
+hist(treesize(rf),
+     main = "No. of Nodes for the Trees",
+     col = "Blue")
+# Tune mtry
+t <- tuneRF(train[,-2], train[,2],
+       stepFactor = 0.5,
+       plot = TRUE,
+       ntreeTry = 300,
+       trace = TRUE,
+       improve = 0.05)
+
+# Partial Dependence Plot
+partialPlot(rf, train, Attrition, "Yes")
+
+# Extract Single Tree
+getTree(rf, 150, labelVar = TRUE)
+
+# Multi-dimensional Scaling Plot of Proximity Matrix
+MDSplot(rf, train$Attrition)
+
+#Decision tree with party
+library(party)
+mytree <- ctree(Attrition~., hr_reduced, controls=ctree_control(mincriterion=0.9, minsplit=50))
+print(mytree)
+plot(mytree,type="simple")
+
+#Misclassification error
+tab<-table(predict(mytree), mydata$Attrition)
+print(tab)
+1-sum(diag(tab))/sum(tab)
+
+#Random Forest - Regression
+#oob.err=double(features)
+#test.err = double(features)
+
+#mtry is no of Variables randomly chosen at each split
+#for(mtry in 1:features)
   
-  pred<-predict(rf,hr_reduced[-train,]) 
-  test.err[mtry]= with(hr_reduced[-train,], mean( (Attrition - pred)^2)) 
+#{
+  #rf=randomForest(Attrition ~ . , data = hr_reduced , subset = train, mtry=mtry,ntree=500) 
+ # oob.err[mtry] = rf$mse[500] #Error of all Trees fitted
   
-  cat(mtry," ") 
+  #pred<-predict(rf,hr_reduced[-train,]) #Predictions on Test Set for each Tree
+  #test.err[mtry]= with(hr_reduced[-train,], mean( (Attrition - pred)^2)) #Mean Squared Test Error
   
-}
+  #cat(mtry," ") #printing the output to the console
+#}
 ```
+<br>
+
 ####Error on Test Dataset
 ```{r}
-test.err
+#test.err
 ```
 ####Out of Bag Error Estimation
 ```{r}
-oob.err
+#oob.err
 ```
 <br>
 <p>
@@ -86,13 +149,12 @@ oob.err
 The red line of Figure 2 show the Out of Bag Error Estimates and the Blue line is the error calculated on Test dataset.
 </p>
 ```{r}
-matplot(1:mtry , cbind(oob.err,test.err), pch=19 , col=c("red","blue"),type="b",ylab="Mean Squared Error",xlab="Number of Predictors Considered at each Split")
-legend("topright",legend=c("Out of Bag Error","Test Error"),pch=19, col=c("red","blue"))
+#matplot(1:mtry , cbind(oob.err,test.err), pch=19 , col=c("red","blue"),type="b",ylab="Mean Squared Error",xlab="Number of Predictors Considered at each Split")
+#legend("topright",legend=c("Out of Bag Error","Test Error"),pch=19, col=c("red","blue"))
 ```
 
 ```{r}
-hr_reduced.lm <- glm(relevel(as.factor(Attrition),ref="Yes") ~ relevel(as.factor(Department),ref="Sales"), data = CaseStudy2data, family =binomial())
-hr_reduced.lm
+hr_reduced.lm <- glm(relevel(as.factor(Attrition),ref="Yes") ~ relevel(as.factor(JobRole),ref="Research Scientist") + relevel(as.factor(OverTime),ref="Yes") + DistanceFromHome, data = hr_reduced, family =binomial())
 
 summary(hr_reduced.lm)
 
