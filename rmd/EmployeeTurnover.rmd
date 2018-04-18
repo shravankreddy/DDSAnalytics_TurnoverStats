@@ -1,47 +1,110 @@
-#Clean data set used in RandomForest (Top 3 Factors)
+---
+title: "Untitled"
+author: "Caroll Rodriguez"
+date: "April 17, 2018"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(utils)
+library(dplyr)
+library(knitr)
+library(randomForest)
+```
+#Multiple Linear Regression Model
+</br>
+###Introduction
+<p>We will train a RandomForest on 70% of the sample data utilizing all the predictors in the dataset. 'Attrition' is the response variable which is a Yes/No indicator. The number of Trees we will train is 500 with the square root of the total number of predicators to use with each Tree. Each Tree will use different set of predicators. 
+Figure 1: Error and Number of Trees. The more Trees you have the less Error.</p>
+```{r}
+#Data import and cleaning
+dataFileCsv <- "data/CaseStudy2data.csv"
+hr_employee_attrition <- read.csv(dataFileCsv)
+attach(hr_employee_attrition)
+nzv <- nearZeroVar(hr_employee_attrition)
+uniq <- paste(shQuote(names(hr_employee_attrition)[nzv], type="cmd"), collapse=", ")
+cat( sprintf("Remove near zero value columns: %s\n", uniq) )
 hr_reduced <- hr_employee_attrition[,-nzv]
-attach(hr_reduced)
-#Age Class was removed and orginal Age column added back in. There was an issue with AgeClass list in rf prediction.
+detach(hr_employee_attrition)
 names(hr_reduced)[1] <- "Age"
-
-# set the record counts
-samplesize <- (nrow(hr_reduced))*.75
+```
+<br>
+###Variable Setup
+<p>
+samplesize - 70% of count of rows in dataset.
+datasize - number of records in dataset.
+train - number of records in training dataset.
+features - number of explanatory variables in dataset.</p>
+```{r}
+attach(hr_reduced)
+samplesize <- (nrow(hr_reduced))*.70
 datasize <- nrow(hr_reduced)
-train=sample(1:nrow(hr_reduced),samplesize)
-
-#WAll the Predictors in the dataset are utilized here.
-hr_reduced.rf <- randomForest(JobSatisfaction ~ . , data = hr_reduced , subset = train)
+train=sample(1:datasize,samplesize)
+features <- ncol(hr_reduced)
+```
+<br>
+###Fitting the RandomForest
+<p>All features will be used in this RandomForest. 
+70% of dataset is used for training and remaining 30% is used to test the Trees. Number of variables selected are 4.
+Figure 1 shows the error is reduced as you add more trees.
+```{r}
+hr_reduced.rf <- randomForest(Attrition ~ . , data = hr_reduced , subset = train)
 hr_reduced.rf
 
-#The above Mean Squared Error and Variance explained are calculated using Out of Bag Error Estimation.In this 
-samplesize# records of Training data is used for training and the remaining 
-datasize - samplesize #is used to Validate the Trees. Also, the number of variables randomly selected at each split is 10.
+attach(hr_reduced.rf)
 
-plot(hr_reduced.rf)     
+#PFigure 1
+plot(hr_reduced.rf, main = "RandomForest - Error vs Trees Chart")     
+```
+<br>
+###Out of Bag Sample Errors and Error on Test dataset
+<p>`r sqrt(features,0)` random features are selected at each split. 500 trees are tested  `r features` times for all `r features` features.
+```{r}
+oob.err=double(features)
+test.err=double(features)
 
-#This plot shows the Error and the Number of Trees.We can easily notice that how the Error is dropping as we keep on adding more and more trees and average them.
-
-
-oob.err=double(31)
-test.err=double(31)
-
-#mtry is no of Variables randomly chosen at each split
-for(mtry in 1:31) 
+for(mtry in 1:features)
 {
-  rf=randomForest(JobSatisfaction ~ . , data = hr_reduced, subset = train,mtry=mtry,ntree=500) 
-  oob.err[mtry] = rf$mse[500] #Error of all Trees fitted
+  rf=randomForest(Attrition ~ . , data = hr_reduced, subset = train,mtry=mtry,ntree=500) 
+  oob.err[mtry] = rf$mse[500] 
   
-  pred<-predict(rf,hr_reduced[-train,]) #Predictions on Test Set for each Tree
-  test.err[mtry]= with(hr_reduced[-train,], mean( (JobSatisfaction - pred)^2)) #Mean Squared Test Error
+  pred<-predict(rf,hr_reduced[-train,]) 
+  test.err[mtry]= with(hr_reduced[-train,], mean( (Attrition - pred)^2)) 
   
-  cat(mtry," ") #printing the output to the console
+  cat(mtry," ") 
   
 }
-
+```
+####Error on Test Dataset
+```{r}
 test.err
+```
+####Out of Bag Error Estimation
+```{r}
 oob.err
-
-
+```
+<br>
+<p>
+####Plot of Test Error and Out of Bag Error
+The red line of Figure 2 show the Out of Bag Error Estimates and the Blue line is the error calculated on Test dataset.
+</p>
+```{r}
 matplot(1:mtry , cbind(oob.err,test.err), pch=19 , col=c("red","blue"),type="b",ylab="Mean Squared Error",xlab="Number of Predictors Considered at each Split")
 legend("topright",legend=c("Out of Bag Error","Test Error"),pch=19, col=c("red","blue"))
+```
+
+```{r}
+hr_reduced.lm <- glm(relevel(as.factor(Attrition),ref="Yes") ~ relevel(as.factor(Department),ref="Sales"), data = CaseStudy2data, family =binomial())
+hr_reduced.lm
+
+summary(hr_reduced.lm)
+
+df.res <- resid(hr_reduced.lm)
+df.res
+plot(df.res, ylab = "Residuals", main = "Residuals - Age ~ JobRole + OverTime + DistanceFromHome")
+
+
+detach(hr_reduced)
+detach(hr_reduced.rf)
+```
 
