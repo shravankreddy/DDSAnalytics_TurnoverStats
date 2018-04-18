@@ -1,0 +1,396 @@
+## Data Description
+The data set provided for this study was sourced from IBM specifically from their Watson Analytics department. This is a ficitonal data set create by IBM data scientists to demonstrate the capabilities of their Watson analytics and predictive platform. For more details, refer to https://www.ibm.com/communities/analytics/watson-analytics-blog/hr-employee-attrition/.
+
+The data set is provided in raw .csv format containing 15 continuous numeric, 6 categorical, 8 ordinal, and 6 binary variables.
+
+### Continuous Numeric Variables:
+Variable Name            | Description [Units]
+-------------------------|------------------------------------------------------
+Age:                     | Age of Employee
+DailyRate:               | Daily Pay Rate [US $ per Day]
+DistanceFromHome:        | Distance to Commute from Home to Work [Miles]
+EmployeeNumber:          | Employee Identification Number
+HourlyRate:              | Daily Pay Rate [US $ per Hour]
+MonthlyIncome:           | Monthly Income [US $] including benefits
+MonthlyRate:             | Monthly Pay Rate [US $ per Month]
+NumCompaniesWorked:      | Number of Companies that Employee has Worked at
+PercentSalaryHike:       | Percentage Increase in Salary [%]
+TotalWorkingYears:       | Total Work Experience [Number of Years]
+TrainingTimesLastYear:   | Number of Training Classes Attended Last Year
+YearsAtCompany:          | Years Spent by Employee Working at Current Company
+YearsInCurrentRole:      | Years Spent by Employee Working in Current Job Role
+YearsSinceLastPromotion: | Years Since Employee Received Their Last Promotion
+YearsWithCurrManager:    | Years Spent by Employee Working with Current Manager
+  
+  
+### Categorical Variables:
+Variable Name   | Description [Factor Levels]
+----------------|--------------------------------------------------------------
+BusinessTravel: | Amount of Business Travel [None / Rarely / Frequent]
+Department:     | Work Department [Sales / HR / R&D]
+Education:      | Education Level [Below College - Doctorate Degree] 
+EducationField: | Education Field / Major [Technical / Medical / Sciences etc.]
+JobRole:        | Job Role [Sales Exec / Lab Tech / Scientist / Manager etc.]
+MaritalStatus:  | Marital Status [Single / Married / Divorced]
+  
+
+### Ordinal Variables:
+Variable Name             | Description [Scale]
+--------------------------|-----------------------------------------------
+EnvironmentSatisfaction:  | Working Environment Satisfaction Level [1 - 4]
+JobInvolvment:            | Job Involvment [1 - 4]
+JobLevel:                 | Job Level [1 - 5]
+JobSatisfaction:          | Job Satisfaction Level [1 - 4]
+PerformanceRating:        | Performance Rating [Low - Outstanding]
+RelationshipSatisfaction: | Working Relationship Satisfaction [1 - 4]
+StockOptionLevel:         | Stock Option Level [1 - 4]
+WorkLifeBalance:          | Work Life Balance [1 - 4]
+  
+  
+### Binary Variables:
+Variable Name  | Description [Factor Levels]
+---------------|----------------------------------------------------------
+Attrition:     | Did the Employee Leave the Company? [Yes / No]
+EmployeeCount  | Count of the Employee of Interest [0 / 1]
+Gender:        | Gender of Employee [Male / Female]
+Over18:        | Is Employee over 18 Years Old [Yes / No]
+OverTime:      | Did the Employee Work OverTime [Yes / No]
+StandardHours: | Standard Number of Working Hours per Pay Period [40 / 80]
+  
+  
+## Data Cleaning and Preparation  
+As with any data set, prior to diving into the analysis and model building, it is essential to check for any missing and erroneuous variables or even single values. After scanning through the provided .csv file and listing the variables in the previous data description section above, we decided to remove EmployeeNumber, EmployeeCount, Over18, and StandardHours are we felt that they did not provide any valuable information that can be used for the study. Surprisingly, We were not able to find any missing values and decided to proceed with the data set as is after removing the aformentioned variables.
+
+## Data Exploration
+Having looked through the raw .csv file to get a feel for the size and structure of the provided data set, it seemed that the next logical step was to visually explore how the attrition rate was affected by each variable.  
+To begin with, our team focused on the continuous numerical variables since they have a higher variance than categorical variables which in turn should result in a greater likelihood for significant differences in the attrition rate. Rather than looking through the 15 continuous variables one at a time, we created a correlation plot to provide as with a starting point. This plot also helped us find which variables are highly correlated suggesting that they are potentially explaining the same trend in attrition and will not be paired together when building our predictive model.
+
+```{r, Correlation Plot}
+# Use the select function from dplyr package to assign the 15 continuous numerical variables to a data frame object called Numeric_Vars
+Numeric_Vars <- hr_employee_attrition %>%
+  select(ï..Age, DailyRate, DistanceFromHome, HourlyRate, MonthlyIncome, MonthlyRate, 
+         NumCompaniesWorked, PercentSalaryHike, YearsAtCompany, YearsInCurrentRole,
+         YearsSinceLastPromotion, YearsWithCurrManager, TotalWorkingYears,
+         TrainingTimesLastYear, StockOptionLevel)
+
+# Use corrplot function to create a correlation plot for the Numeric_Vars data frame
+corrplot(cor(Numeric_Vars), method = "number", type = "upper", order = "hclust", 
+         tl.col = "black", tl.srt = 45)
+```
+
+Looking at the plot, we can see that the continuous variables related to the years of employement are correlated with a Pearson coefficient, r, ranging between 0.51 - 0.77. This includes the total number of years worked, the number of years worked in the current role, number of years working for a company, the number of years with the current manager along with the age of the employee and the monthly income. This seems intuitive since an older person is more likely to have been in the workforce for a while and have more years of experience with a higher income and more time spent working in a specific role for the same company and / or manager. In effect, these variables are related by the amount of work experience that the employee has.  
+To understand the extent that each of these variables  has on attrition, we decided to create side-by-side boxplots to see what the distribution between attrited and retained employees looked like. We also displayed the p-value from the Wilcoxon test to see if the difference in the mean values between the two groups were statistically significant.
+```{r, Box Plots for Work Experience Continuous Variables}
+theme_set(theme_light())
+
+Yrs_Since_Prom <- ggboxplot(hr_employee_attrition, x = "Attrition", y = "YearsSinceLastPromotion",
+                            color = "Attrition", palette = "jco") + 
+                            coord_flip() +
+                            theme(legend.position = "none") +
+                            stat_compare_means(method = "wilcox.test", label = "p.format", vjust = -2.5, hjust = 1.5)
+
+Yrs_In_Role <- ggboxplot(hr_employee_attrition, x = "Attrition", y = "YearsInCurrentRole",
+                         color = "Attrition", palette = "jco") + 
+                         coord_flip() +  
+                         theme(legend.position = "none") +
+                         stat_compare_means(method = "wilcox.test", label = "p.format", vjust = -2.5, hjust = 1.5)
+
+Yrs_At_Comp <- ggboxplot(hr_employee_attrition, x = "Attrition", y = "YearsAtCompany",
+                         color = "Attrition", palette = "jco") +
+                         coord_flip() +
+                         theme(legend.position = "none") +
+                         stat_compare_means(method = "wilcox.test", label = "p.format", vjust = -2.5, hjust = 1.5)
+
+Yrs_With_Manager <- ggboxplot(hr_employee_attrition, x = "Attrition", y = "YearsWithCurrManager",
+                              color = "Attrition", palette = "jco") +
+                              coord_flip() +
+                              theme(legend.position = "none") +
+                              stat_compare_means(method = "wilcox.test", label = "p.format", vjust = -2.5, hjust = 1.5)
+
+Total_working_Years <- ggboxplot(hr_employee_attrition, x = "Attrition", y = "TotalWorkingYears",
+                                 color = "Attrition", palette = "jco") +
+                                 coord_flip() +
+                                 theme(legend.position = "none") +
+                                 stat_compare_means(method = "wilcox.test", label = "p.format", vjust = -2.5, hjust = 1.5)
+
+Age <- ggboxplot(hr_employee_attrition, x = "Attrition", y = "ï..Age",
+                 color = "Attrition", palette = "jco") +
+                 coord_flip() +
+                 theme(legend.position = "none") +
+                 stat_compare_means(method = "wilcox.test", label = "p.format", vjust = -2.5, hjust = 1.5)
+
+grid.arrange(Yrs_Since_Prom, Yrs_In_Role,
+             Yrs_At_Comp, Yrs_With_Manager,
+             Total_working_Years, Age,
+             nrow = 3)
+```
+Apart from the number of years since the employee was last promoted, the other 5 variables in the grid above showed to have a statistically significant difference between the attrition and non-attrition group.  
+
+Our team didn't want to stop there! We were curious to see what kind of trends we could identify amongst the other continuous variables. Our intuition told us that the employee pay rate should play a significant role in the attrition rate, however, the box plots in the grid below tell a somewhat different story.
+```{r, Box Plots for Pay Rate Continuous Variables}
+Hourly_Rate <- ggboxplot(hr_employee_attrition, x = "Attrition", y = "HourlyRate",
+                         color = "Attrition", palette = "jco") +
+                         coord_flip() +
+                         theme(legend.position = "none") +
+                         stat_compare_means(method = "wilcox.test", label = "p.format", vjust = -3, hjust = 1)
+
+Daily_Rate <- ggboxplot(hr_employee_attrition, x = "Attrition", y = "DailyRate",
+                        color = "Attrition", palette = "jco") +
+                        coord_flip() +
+                        theme(legend.position = "none") +
+                        stat_compare_means(method = "wilcox.test", label = "p.format", vjust = -3, hjust = 1)
+
+Monthly_Rate <- ggboxplot(hr_employee_attrition, x = "Attrition", y = "MonthlyRate",
+                          color = "Attrition", palette = "jco") +
+                          coord_flip() +
+                          theme(legend.position = "none") +
+                          stat_compare_means(method = "wilcox.test", label = "p.format", vjust = -3, hjust = 1)
+
+
+Monthly_Income <- ggboxplot(hr_employee_attrition, x = "Attrition", y = "log10(MonthlyIncome)",
+                            color = "Attrition", palette = "jco") +
+                            coord_flip() +
+                            theme(legend.position = "none") +
+                            stat_compare_means(method = "wilcox.test", label = "p.format", vjust = -3, hjust = 1)
+
+
+Perc_Salary_Hike <- ggboxplot(hr_employee_attrition, x = "Attrition", y = "PercentSalaryHike",
+                              color = "Attrition", palette = "jco") +
+                              coord_flip() +
+                              theme(legend.position = "none") +
+                              stat_compare_means(method = "wilcox.test", label = "p.format", vjust = -3, hjust = 1)
+
+grid.arrange(Hourly_Rate, Daily_Rate,
+             Monthly_Rate, Monthly_Income,
+             Perc_Salary_Hike,
+             nrow = 3)
+```
+Surprisingly, the variables representing the hourly, daily, and monthly pay rate are not showing to have an impact on attitrion. However, we did find that employees that remain working for the company tend to have a larger monthly income than employees that leave. We believe that the monthly income variable could be including other financial benefits such as bonus pay, health insurance, and 401k match that might not have been considered in the pay rate variables that are solely looking at the hourly or base salary. Another interesting insight was that the percentage percentage salary hike didn't seem to make a difference on the attrition. This suggests that employees that have already made up their mind to leave the company were not willing to stay even after a large raise in salary.  
+
+The next variable of interest for our team was the daily work commute. No one likes spending a lot of their time everyday while driving to and from work. Instead of wasting time sitting in traffic and spending a lot of money of gas and vehicle maintenance, people would rather spend that time and energy at home with their friends and family.
+```{r, Box Plots for Pay Rate Continuous Variables}
+theme_set(theme_classic())
+
+Distance_Home_BoxPlot <- ggboxplot(hr_employee_attrition, x = "Attrition", y = "DistanceFromHome",
+                         color = "Attrition", palette = "jco") +
+                         coord_flip() +
+                         theme(legend.position = "none") +
+                         stat_compare_means(method = "wilcox.test", label = "p.format", vjust = -6, hjust = 1)
+
+Distance_Home_DensityPlot <- ggplot(hr_employee_attrition, aes(x = DistanceFromHome, color = Attrition)) +
+                             geom_density() +
+                             scale_color_jco() +
+                             theme(legend.position = "none")
+
+grid.arrange(Distance_Home_BoxPlot,
+             Distance_Home_DensityPlot,
+             nrow = 2)
+```
+As expected, the boxplot shows that employees are more likely to leave if they have a greater distance to travel between home and work. Taking a closer look at the density plot, it seems that the attrition rate becomes a concern around the 10 mile mark.  
+
+Our next step was to look at the categorical variables in the data set. First on our list was to look at how the the gender and martial status of the employees affected the attrition rate. The grid below contains horizontal side-by-side boxplots for both variables to get a feel for the difference amongst the proportion of their factor levels. 
+```{r, Box Plots for Gender and Marital Status Categorical Variables}
+# Compare attrition rate with marital status
+Marital_Status <- hr_employee_attrition %>% 
+  mutate(MaritalStatus = factor(MaritalStatus)) %>% 
+  mutate(MaritalStatus = fct_recode(MaritalStatus,
+                                    "Single" = "Single",
+                                    "Married" = "Married",
+                                    "Divorced" = "Divorced"))
+
+Marital_Status_Plot <- ggplot(Marital_Status, aes(fill = Attrition, x = MaritalStatus)) + geom_bar(position = 'fill') + coord_flip() + scale_fill_jco()
+
+# Compare attrition rate with gender
+Gender <- hr_employee_attrition %>% 
+  mutate(Gender = factor(Gender)) %>% 
+  mutate(Gender = fct_recode(Gender,
+                             "Male" = "Male",
+                             "Female" = "Female"))
+
+Gender_Plot <- ggplot(Gender, aes(fill = Attrition, x = Gender)) + geom_bar(position = 'fill') + coord_flip() + scale_fill_jco()
+
+grid.arrange(Gender_Plot, 
+             Marital_Status_Plot,
+             nrow = 2)
+```
+For the gender variable the attrition seems slightly higher for males than for females, however, the difference doesn't look to be significant. On the other hand, the marital status told a different story. Single employees were more likely to leave the company when compared to ones that were married or divorced.  
+
+Our team then chose to look into categorical variables related to education and their department at work. Going down the boxplot grid below, we first see that employees with a background in higher education tend to have a smaller attrition rate when compared to those with little to no college education. People with a Bachelor degree still have a realtively high attrition rate and only once we get to the Master degree do we see a real step change. This could be due to people with higher levels of education being put in job roles with more responsibilities and higher pay rate thus having a greater incentive to stay at with the company. When looking a little closer at the education fields that people with higher degrees pursued, the ones with human resources, marketing and technical degrees had higher attrition rates that people with medical, life sciences, and other miscellaneous degrees. This could be due to the respective education fields with higher attrition having more job availability for the employees to pursue or that people in the medical and life science fields having a higher level of job satisfaction since they're already working in their dreams jobs. The last chart somewhat echoes the second one described above with people in the sales and human resources departments having higher attrition rates than people in research and development.
+```{r, Box Plots for Education and Department Categorical Variables}
+# Look into education variable. Need to rename numerical factor
+# levels to the labels provided under the data definition tab
+Education_Level <- hr_employee_attrition %>% 
+  mutate(Education = factor(Education)) %>% 
+  mutate(Education = fct_recode(Education, 
+                                "Below College" = "1", 
+                                "College" = "2", 
+                                "Bachelor" = "3", 
+                                "Master" = "4", 
+                                "Doctor" = "5"))
+
+Education_Level_Plot <- ggplot(Education_Level, aes(fill = Attrition, x = Education)) + geom_bar(position = 'fill') + coord_flip() + scale_fill_jco()
+
+# Compare attrition rate with education field
+Education_Field <- hr_employee_attrition %>% 
+  mutate(EducationField = factor(EducationField)) %>% 
+  mutate(EducationField = fct_recode(EducationField,
+                                     "Technical Degree" = "Technical Degree",
+                                     "Other" = "Other",
+                                     "Medical" = "Medical",
+                                     "Marketing" = "Marketing",
+                                     "Life Sciences" = "Life Sciences",
+                                     "Human Resources" = "Human Resources"))
+
+Education_Field_Plot <- ggplot(Education_Field, aes(fill = Attrition, x = EducationField)) + geom_bar(position = 'fill') + coord_flip() + scale_fill_jco()
+
+
+# Compare attrition rate with education level
+Department <- hr_employee_attrition %>% 
+  mutate(Department = factor(Department)) %>% 
+  mutate(Department = fct_recode(Department,
+                                 "Sales" = "Sales",
+                                 "Research & Development" = "Research & Development",
+                                 "Human Resources" = "Human Resources"))
+
+Department_Plot <- ggplot(Department, aes(fill = Attrition, x = Department)) + geom_bar(position = 'fill') + coord_flip() + scale_fill_jco()
+
+grid.arrange(Education_Level_Plot, 
+             Education_Field_Plot, 
+             Department_Plot,
+             nrow = 3)
+```
+  
+Having looked through the effect of education, we thought that the variables related to job demands could have a signficant impact. Naturally, employees with low levels of job satisfaction have much higher levels of attrition but that only improves when the employees have very high job satisfaction. This same trend is reflected in the chart for work life balance where we see that the a bad balance has a very high attrition rate of ~ 30%. The last chart also follows the expected trend that jobs with demanding travel requirments tend to lose the more people than ones with little to no travel.
+```{r, Box Plots for Work Demands Categorical Variables}
+# Compare attrition between different levels of job satisfaction
+Job_Satisfaction_Level <- hr_employee_attrition %>% 
+  mutate(JobSatisfaction = factor(JobSatisfaction)) %>% 
+  mutate(JobSatisfaction = fct_recode(JobSatisfaction,
+                                      "Low" = "1",
+                                      "Medium" = "2",
+                                      "High" = "3",
+                                      "Very High" = "4"))
+
+Job_Satisfaction_Level_Plot <- ggplot(Job_Satisfaction_Level, aes(fill = Attrition, x = JobSatisfaction)) + geom_bar(position = 'fill') + coord_flip() + scale_fill_jco()
+
+# Compare attrition rate based work-life balance
+Work_Life_Balance <- hr_employee_attrition %>% 
+  mutate(WorkLifeBalance = factor(WorkLifeBalance)) %>% 
+  mutate(WorkLifeBalance = fct_recode(WorkLifeBalance,
+                                      "Bad" = "1",
+                                      "Good" = "2",
+                                      "Better" = "3",
+                                      "Best" = "4"))
+
+Work_Life_Balance_Plot <- ggplot(Work_Life_Balance, aes(fill = Attrition, x = WorkLifeBalance)) + geom_bar(position = 'fill') + coord_flip() + scale_fill_jco()
+
+# Compare attrition rate with business travel
+Business_Travel <- hr_employee_attrition %>% 
+  mutate(BusinessTravel = factor(BusinessTravel)) %>% 
+  mutate(BusinessTravel = fct_recode(BusinessTravel,
+                                     "Travel Frequently" = "Travel_Frequently",
+                                     "Travel Rarely" = "Travel_Rarely",
+                                     "Non-Travel" = "Non-Travel"))
+
+Business_Travel_Plot <- ggplot(Business_Travel, aes(fill = Attrition, x = BusinessTravel)) + geom_bar(position = 'fill') + coord_flip() + scale_fill_jco()
+
+grid.arrange(Job_Satisfaction_Level_Plot, 
+             Work_Life_Balance_Plot, 
+             Business_Travel_Plot,
+             nrow = 3)
+```
+
+Moving down the list of categorical variables, we decided to look at the job involvement and performance rating of the employees. The first chart shows a clear downward trend in attrition as people become more involved in their jobs which seems intuitive since people that are not heavily involved are not very engaged in the company and are probably already thinking of their next move. The performance rating doesn't seem to have any influence on the attrition rate with the caveat that all the employees were rated as either excellent or outstanding suggesting that all the employees are content with their rating and feel that it is well deserved or that employees with poor ratings had already left the company prior to the data collection phase for this study.
+```{r, Box Plots for Job Involvment and Rating Categorical Variables}
+# Compare attrition rate based on Job Involvement
+Job_Involvement <- hr_employee_attrition %>% 
+  mutate(JobInvolvement = factor(JobInvolvement)) %>% 
+  mutate(JobInvolvement = fct_recode(JobInvolvement,
+                                     "Low" = "1",
+                                     "Medium" = "2",
+                                     "High" = "3",
+                                     "Very High" = "4"))
+
+Job_Involvement_Plot <- ggplot(Job_Involvement, aes(fill = Attrition, x = JobInvolvement)) + geom_bar(position = 'fill') + coord_flip() + scale_fill_jco()
+
+# Compare attrition rate based on performance rating
+Performance_Rating <- hr_employee_attrition %>% 
+  mutate(PerformanceRating = factor(PerformanceRating)) %>% 
+  mutate(PerformanceRating = fct_recode(PerformanceRating,
+                                        "Low" = "1",
+                                        "Good" = "2",
+                                        "Excellent" = "3",
+                                        "Outstanding" = "4"))
+
+Performance_Rating_Plot <- ggplot(Performance_Rating, aes(fill = Attrition, x = PerformanceRating)) + geom_bar(position = 'fill') + coord_flip() + scale_fill_jco()
+
+grid.arrange(Job_Involvement_Plot, 
+             Performance_Rating_Plot,
+             nrow = 2)
+```
+
+Our next set of variables were related to working conditions. For both the employee relationship status with their coworkers and their surrounding office environment, only the low levels seems to increase the attrition level. From the medium through to the very high levels, there didn't seem to be any change in attrition.
+```{r, Box Plots for Working Conditions Categorical Variables}
+# Compare attrition rate based on relationship satisfaction
+Relationship_Satisfaction <- hr_employee_attrition %>% 
+  mutate(RelationshipSatisfaction = factor(RelationshipSatisfaction)) %>% 
+  mutate(RelationshipSatisfaction = fct_recode(RelationshipSatisfaction,
+                                               "Low" = "1",
+                                               "Medium" = "2",
+                                               "High" = "3",
+                                               "Very High" = "4"))
+
+Relationship_Satisfaction_Plot <- ggplot(Relationship_Satisfaction, aes(fill = Attrition, x = RelationshipSatisfaction)) + geom_bar(position = 'fill') + coord_flip() + scale_fill_jco()
+
+# Compare attrition rate based on Environment Satisfaction
+Environment_Satisfaction <- hr_employee_attrition %>% 
+  mutate(EnvironmentSatisfaction = factor(EnvironmentSatisfaction)) %>% 
+  mutate(EnvironmentSatisfaction = fct_recode(EnvironmentSatisfaction,
+                                              "Low" = "1",
+                                              "Medium" = "2",
+                                              "High" = "3",
+                                              "Very High" = "4"))
+
+Environment_Satisfaction_Plot <- ggplot(Environment_Satisfaction, aes(fill = Attrition, x = EnvironmentSatisfaction)) + geom_bar(position = 'fill') + coord_flip() + scale_fill_jco()
+
+grid.arrange(Relationship_Satisfaction_Plot, 
+             Environment_Satisfaction_Plot,
+             nrow = 2)
+```
+
+
+For the last set of categorical variables, we grouped what we thought of as miscellaneous job benefits. The stock option level had an interesting trend with employees that hadn't been granted any stock options showing almost 25% attrition which significantly dropped when employees had levels 1 and 2 but then jumped up again for employees in the level 3 category. We tought that the more stock options that employees had, the more likely they would be to stay with the company but upon closer inspection, we noticed that there was a small amount of employees in the highest level thus it would take much to influence the mean value of atrition. The number of times that an employee recived training during the previous year also had an interesting trend. As expected, when employees don't receive any training at all, they are more likely to feel incompetent in their job role and therefore leave the company. This attrition rate significantly drops off once employees begin to get more training but the slightly increases when there went to 4 training classes and drops off again after that. This shows that there might be a sweet spot to the amount of training that employees prefer with the possibility of feeling like they are taking too many classes to where it almost become counterproductive.
+```{r, Box Plots for Miscellaneous Job Benefits Categorical Variables}
+# Compare attrition rate amongst stock option levels
+Stock_Option_Level <- hr_employee_attrition %>% 
+  mutate(StockOptionLevel = factor(StockOptionLevel)) %>% 
+  mutate(StockOptionLevel = fct_recode(StockOptionLevel,
+                                       "0" = "0",
+                                       "1" = "1",
+                                       "2" = "2",
+                                       "3" = "3"))
+
+Stock_Option_Level_Plot <- ggplot(Stock_Option_Level, aes(fill = Attrition, x = StockOptionLevel)) + geom_bar(position = 'fill') + coord_flip() + scale_fill_jco()
+
+
+# Compare attrition rate amongst training times last year
+Training_Times_Last_Year <- hr_employee_attrition %>% 
+  mutate(TrainingTimesLastYear = factor(TrainingTimesLastYear)) %>% 
+  mutate(TrainingTimesLastYear = fct_recode(TrainingTimesLastYear,
+                                            "0" = "0",
+                                            "1" = "1",
+                                            "2" = "2",
+                                            "3" = "3",
+                                            "4" = "4",
+                                            "5" = "5",
+                                            "6" = "6"))
+
+Training_Times_Last_Year_Plot <- ggplot(Training_Times_Last_Year, aes(fill = Attrition, x = TrainingTimesLastYear)) + geom_bar(position = 'fill') + coord_flip() + scale_fill_jco()
+
+grid.arrange(Stock_Option_Level_Plot, 
+             Training_Times_Last_Year_Plot,
+             nrow = 2)
+
+```
+  
+After looking through the complete list of relevant numerical and categorical variables and identifying ones with a significant impact on the attrition rate, we decided to employ a random forest model to pick our top 3 variables.
