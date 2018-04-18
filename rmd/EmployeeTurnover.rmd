@@ -1,7 +1,4 @@
 ---
-title: "Untitled"
-author: "Caroll Rodriguez"
-date: "April 17, 2018"
 output: html_document
 ---
 ```{r setup, include=FALSE}
@@ -11,9 +8,9 @@ library(dplyr)
 library(knitr)
 library(randomForest)
 ```
-#Multiple Linear Regression Model
+# Multiple Linear Regression Model
 </br>
-###Introduction
+### Introduction
 <p>We will train a RandomForest on 70% of the sample data utilizing all the predictors in the dataset. 'Attrition' is the response variable which is a Yes/No indicator. The number of Trees we will train is 500 with the square root of the total number of predicators to use with each Tree. Each Tree will use different set of predicators. 
 Figure 1: Error and Number of Trees. The more Trees you have the less Error.</p>
 ```{r}
